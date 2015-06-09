@@ -148,10 +148,6 @@ namespace Bookkeeper.ViewModel
         {
             get
             {
-                if (this.CurrentBooks == null)
-                {
-                    return false;
-                }
                 return true;
             }
         }
@@ -193,6 +189,48 @@ namespace Bookkeeper.ViewModel
         }
 
 #endregion
+
+        #region Remove books with empty title
+
+        private RelayCommand _removeEmptyCommand;
+
+        public ICommand RemoveEmptyCommand
+        {
+            get
+            {
+                if (_removeEmptyCommand == null)
+                {
+                    _removeEmptyCommand = new RelayCommand(param => this.RemoveEmptyCommandExecute(),
+                        param => this.RemoveEmptyCommandCanExecute);
+                }
+                return _removeEmptyCommand;
+            }
+        }
+
+        void RemoveEmptyCommandExecute()
+        {
+            List<Book> booksToRemove = AllBooks.Where(book => String.IsNullOrEmpty(book.Title)).ToList();
+            foreach(Book book in booksToRemove)
+            {
+                AllBooks.Remove(book);
+            }
+            OnPropertyChanged("AllBooks");
+            OnPropertyChanged("CurrentBooks");
+        }
+
+        private bool RemoveEmptyCommandCanExecute
+        {
+            get
+            {
+                if (this.CurrentBooks == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        #endregion
 
         protected override void OnDispose()
         {

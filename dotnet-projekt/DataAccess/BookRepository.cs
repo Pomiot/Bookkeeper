@@ -7,15 +7,16 @@ namespace Bookkeeper.DataAccess
 {
     public class BookRepository
     {
-        List<Book> _books;
+        private List<Book> _books;
 
+        private const string FileName = "BookListAsJSON.json";
+        
         public BookRepository()
         {
             if (_books == null)
             {
                 loadBooks();
             }
-
         }
 
         public List<Book> getBooks()
@@ -25,27 +26,23 @@ namespace Bookkeeper.DataAccess
 
         public void saveBooks(List<Book> newBookList)
         {
-            string fileName = "BookListAsJSON.json";
-            DataContractJsonSerializer bookSerializer = new DataContractJsonSerializer(typeof(List<Book>));
-            FileStream fs = File.OpenWrite(fileName);
+            var bookSerializer = new DataContractJsonSerializer(typeof(List<Book>));
 
-            bookSerializer.WriteObject(fs, newBookList);
-
-            fs.Close();
-            fs.Dispose();
-    
+            using (var fs = File.OpenWrite(FileName))
+                bookSerializer.WriteObject(fs, newBookList);
         }
 
         private void loadBooks()
         {
-            string fileName = "BookListAsJSON.json";
-            DataContractJsonSerializer bookSerializer = new DataContractJsonSerializer(typeof(List<Book>));
-            FileStream fs = File.OpenRead(fileName);
+            var bookSerializer = new DataContractJsonSerializer(typeof(List<Book>));
 
-            _books = (List<Book>)bookSerializer.ReadObject(fs);
-
-            fs.Close();
-            fs.Dispose();
+            if (!File.Exists(FileName))
+            {
+                using (var filewriter = new StreamWriter(FileName))
+                    filewriter.Write("[]");
+            }
+            using (var fs = File.OpenRead(FileName))
+                _books = (List<Book>) bookSerializer.ReadObject(fs);
         }
     }
 }
